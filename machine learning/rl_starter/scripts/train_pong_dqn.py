@@ -45,11 +45,33 @@ def build_pong_env(n_envs: int, seed: int, render_mode: str | None):
     return env
 
 
+def pick_device(requested: str) -> str:
+    if requested == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    else:
+        device = requested
+    if device == "cuda":
+        if not torch.cuda.is_available():
+            print("CUDA not available. Falling back to CPU.")
+            return "cpu"
+        try:
+            arch_list = torch.cuda.get_arch_list()
+            major, minor = torch.cuda.get_device_capability()
+            sm = f"sm_{major}{minor}"
+            if arch_list and sm not in arch_list:
+                print(f"CUDA arch {sm} not supported by this PyTorch build. Falling back to CPU.")
+                return "cpu"
+        except Exception:
+            pass
+    return device
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Train DQN on Atari Pong")
     parser.add_argument("--timesteps", type=int, default=1_000_000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--n-envs", type=int, default=1)
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
     parser.add_argument("--save-path", type=str, default="models/pong_dqn.zip")
     parser.add_argument("--log-dir", type=str, default="runs/pong_dqn")
     parser.add_argument("--checkpoint-freq", type=int, default=100_000)
@@ -62,7 +84,7 @@ def main() -> None:
     env = build_pong_env(args.n_envs, args.seed, render_mode=None)
     eval_env = build_pong_env(1, args.seed + 1, render_mode=None)
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = pick_device(args.device)
 
     checkpoint_dir = dirs["models"] / "pong_dqn_checkpoints"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)

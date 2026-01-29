@@ -15,18 +15,40 @@ sys.path.append(str(ROOT))
 from rl_utils.paths import ensure_dirs
 
 
+def pick_device(requested: str) -> str:
+    if requested == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    else:
+        device = requested
+    if device == "cuda":
+        if not torch.cuda.is_available():
+            print("CUDA not available. Falling back to CPU.")
+            return "cpu"
+        try:
+            arch_list = torch.cuda.get_arch_list()
+            major, minor = torch.cuda.get_device_capability()
+            sm = f"sm_{major}{minor}"
+            if arch_list and sm not in arch_list:
+                print(f"CUDA arch {sm} not supported by this PyTorch build. Falling back to CPU.")
+                return "cpu"
+        except Exception:
+            pass
+    return device
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Evaluate PPO on LunarLander-v3")
+    parser = argparse.ArgumentParser(description="Evaluate PPO on LunarLander-v2")
     parser.add_argument("--episodes", type=int, default=5)
     parser.add_argument("--model-path", type=str, default="models/lunarlander_ppo.zip")
     parser.add_argument("--vecnorm-path", type=str, default="models/lunarlander_ppo_vecnormalize.pkl")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
     args = parser.parse_args()
 
     ensure_dirs()
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = pick_device(args.device)
 
     def make_env():
-        return gym.make("LunarLander-v3", render_mode="human")
+        return gym.make("LunarLander-v2", render_mode="human")
 
     env = DummyVecEnv([make_env])
 
@@ -36,7 +58,10 @@ def main() -> None:
         env.training = False
         env.norm_reward = False
 
-    model = PPO.load(args.model_path, env=env, device=device)
+    model_path = Path(args.model_path)
+    if model_path.suffix == ".zip":
+        model_path = model_path.with_suffix("")
+    model = PPO.load(str(model_path), env=env, device=device)
 
     for _ in range(args.episodes):
         obs = env.reset()

@@ -12,7 +12,7 @@ PowerShell (from project root):
 ```
 
 ```powershell
-# 2) Train LunarLander PPO
+# 2) Train LunarLander PPO (uses LunarLander-v2)
 .\.venv\Scripts\python.exe .\scripts\train_lunarlander_ppo.py --timesteps 500000 --n-envs 16
 ```
 
@@ -23,10 +23,11 @@ PowerShell (from project root):
 
 ## Atari (Pong) setup (optional)
 
-Install Atari extras (one command):
+Install Atari extras (two commands):
 
 ```powershell
-.\.venv\Scripts\python.exe -m pip install "gymnasium[atari,accept-rom-license]"
+.\.venv\Scripts\python.exe -m pip install "gymnasium[atari]==0.29.1" "autorom[accept-rom-license]"
+.\.venv\Scripts\python.exe -m autorom
 ```
 
 Train Pong DQN:
@@ -54,11 +55,12 @@ Evaluate Pong DQN (renders):
   Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
   ```
 - **Visual C++ build tools**: Some packages may require Microsoft Visual C++ Build Tools. Install from the Visual Studio Build Tools installer if you see compiler errors.
+- **Box2D build on Windows**: If Gymnasium Box2D fails to install, install SWIG and the C++ build tools, then retry.
 - **Rendering**: Gymnasium rendering needs a desktop session. If running headless or via remote session without GUI, use `--render-mode none` (where available) or avoid eval scripts.
 - **Slow or stuck rendering**: Try reducing episode count or disabling rendering. Rendering is only enabled in the eval scripts by default.
-- **GPU not used**: Ensure your NVIDIA drivers are up to date and that `torch.cuda.is_available()` returns `True`.
+- **GPU not used**: Ensure your NVIDIA drivers are up to date and that `torch.cuda.is_available()` returns `True`. If your GPU is newer than the PyTorch build (e.g., sm_120), use `--device cpu` or install a newer PyTorch build that supports your GPU.
 
 ## Notes
 
-- LunarLander uses vectorized environments and optional `VecNormalize`.
+- LunarLander uses vectorized environments and optional `VecNormalize` (Gymnasium `LunarLander-v2`).
 - Atari is optional and separated from LunarLander. If Atari dependencies are missing, the Pong scripts will exit with a clear message.

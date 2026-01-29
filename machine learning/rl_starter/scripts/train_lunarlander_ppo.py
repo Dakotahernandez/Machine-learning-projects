@@ -22,7 +22,7 @@ from rl_utils.seeding import seed_everything
 def build_vec_env(n_envs: int, seed: int, vec_type: str):
     def make_env(rank: int):
         def _init():
-            env = gym.make("LunarLander-v3")
+            env = gym.make("LunarLander-v2")
             env = gym.wrappers.RecordEpisodeStatistics(env)
             env.reset(seed=seed + rank)
             return env
@@ -36,13 +36,35 @@ def build_vec_env(n_envs: int, seed: int, vec_type: str):
     return DummyVecEnv(env_fns)
 
 
+def pick_device(requested: str) -> str:
+    if requested == "auto":
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+    else:
+        device = requested
+    if device == "cuda":
+        if not torch.cuda.is_available():
+            print("CUDA not available. Falling back to CPU.")
+            return "cpu"
+        try:
+            arch_list = torch.cuda.get_arch_list()
+            major, minor = torch.cuda.get_device_capability()
+            sm = f"sm_{major}{minor}"
+            if arch_list and sm not in arch_list:
+                print(f"CUDA arch {sm} not supported by this PyTorch build. Falling back to CPU.")
+                return "cpu"
+        except Exception:
+            pass
+    return device
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Train PPO on LunarLander-v3")
+    parser = argparse.ArgumentParser(description="Train PPO on LunarLander-v2")
     parser.add_argument("--timesteps", type=int, default=500_000)
     parser.add_argument("--n-envs", type=int, default=16)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--vec-env", choices=["subproc", "dummy"], default="subproc")
     parser.add_argument("--vec-normalize", action="store_true")
+    parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
     parser.add_argument("--save-path", type=str, default="models/lunarlander_ppo.zip")
     parser.add_argument("--log-dir", type=str, default="runs/lunarlander_ppo")
     parser.add_argument("--checkpoint-freq", type=int, default=50_000)
@@ -55,7 +77,7 @@ def main() -> None:
     env = build_vec_env(args.n_envs, args.seed, args.vec_env)
     env = VecMonitor(env)
 
-    eval_env = DummyVecEnv([lambda: gym.make("LunarLander-v3")])
+    eval_env = DummyVecEnv([lambda: gym.make("LunarLander-v2")])
     eval_env = VecMonitor(eval_env)
 
     vecnorm_path = Path(args.save_path).with_suffix("").with_name("lunarlander_ppo_vecnormalize.pkl")
@@ -65,7 +87,7 @@ def main() -> None:
         eval_env.obs_rms = env.obs_rms
         eval_env.ret_rms = env.ret_rms
 
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = pick_device(args.device)
 
     checkpoint_dir = dirs["models"] / "lunarlander_ppo_checkpoints"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
