@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from subprocess import PIPE, Popen
 from typing import Any
+from urllib.parse import urlparse, parse_qs
 
 ROOT = Path(__file__).resolve().parents[1]
 UI_DIR = ROOT / "ui"
@@ -69,6 +70,15 @@ def build_command(payload: dict[str, Any]) -> list[str]:
     task = payload.get("task")
     game = payload.get("game")
     device = payload.get("device", "auto")
+    if game == "lunarlander":
+        default_name = "lunarlander_ppo"
+    elif game == "pong":
+        default_name = "pong_dqn"
+    else:
+        default_name = "run"
+    run_name = payload.get("run_name") or default_name
+    save_path = str(ROOT / "models" / f"{run_name}.zip")
+    log_dir = str(ROOT / "runs" / run_name)
 
     if task == "train" and game == "lunarlander":
         cmd = [
@@ -82,6 +92,14 @@ def build_command(payload: dict[str, Any]) -> list[str]:
             device,
             "--vec-env",
             payload.get("vec_env", "subproc"),
+            "--run-name",
+            run_name,
+            "--save-path",
+            save_path,
+            "--log-dir",
+            log_dir,
+            "--verbose",
+            "0",
         ]
         if payload.get("vec_normalize"):
             cmd.append("--vec-normalize")
@@ -95,6 +113,8 @@ def build_command(payload: dict[str, Any]) -> list[str]:
             str(int(payload.get("episodes", 3))),
             "--device",
             device,
+            "--model-path",
+            str(payload.get("model_path", ROOT / "models" / "lunarlander_ppo.zip")),
         ]
 
     if task == "train" and game == "pong":
@@ -107,6 +127,14 @@ def build_command(payload: dict[str, Any]) -> list[str]:
             str(int(payload.get("n_envs", 1))),
             "--device",
             device,
+            "--run-name",
+            run_name,
+            "--save-path",
+            save_path,
+            "--log-dir",
+            log_dir,
+            "--verbose",
+            "0",
         ]
 
     if task == "eval" and game == "pong":
@@ -117,12 +145,16 @@ def build_command(payload: dict[str, Any]) -> list[str]:
             str(int(payload.get("episodes", 3))),
             "--device",
             device,
+            "--model-path",
+            str(payload.get("model_path", ROOT / "models" / "pong_dqn.zip")),
         ]
 
     raise ValueError("Invalid task/game")
 
 
 class Handler(BaseHTTPRequestHandler):
+    def log_message(self, format: str, *args) -> None:  # noqa: A003
+        return
     def _send(self, status: int, data: Any, content_type: str = "application/json") -> None:
         body = data if isinstance(data, (bytes, bytearray)) else json.dumps(data).encode("utf-8")
         self.send_response(status)
@@ -132,17 +164,29 @@ class Handler(BaseHTTPRequestHandler):
         self.wfile.write(body)
 
     def do_GET(self):
-        if self.path in ("/", "/index.html"):
+        parsed = urlparse(self.path)
+        if parsed.path in ("/", "/index.html"):
             content = (UI_DIR / "index.html").read_bytes()
             return self._send(HTTPStatus.OK, content, "text/html")
-        if self.path == "/app.js":
+        if parsed.path == "/app.js":
             return self._send(HTTPStatus.OK, (UI_DIR / "app.js").read_bytes(), "text/javascript")
-        if self.path == "/style.css":
+        if parsed.path == "/style.css":
             return self._send(HTTPStatus.OK, (UI_DIR / "style.css").read_bytes(), "text/css")
-        if self.path == "/status":
+        if parsed.path == "/status":
             return self._send(HTTPStatus.OK, MANAGER.status())
-        if self.path == "/logs":
+        if parsed.path == "/logs":
             return self._send(HTTPStatus.OK, {"lines": MANAGER.get_logs()})
+        if parsed.path == "/models":
+            params = parse_qs(parsed.query)
+            game = params.get("game", [None])[0]
+            models_dir = ROOT / "models"
+            models_dir.mkdir(parents=True, exist_ok=True)
+            files = sorted([p.name for p in models_dir.glob("*.zip")])
+            if game == "lunarlander":
+                files = [f for f in files if "lunar" in f.lower()]
+            if game == "pong":
+                files = [f for f in files if "pong" in f.lower()]
+            return self._send(HTTPStatus.OK, {"files": files})
         return self._send(HTTPStatus.NOT_FOUND, {"error": "not found"})
 
     def do_POST(self):

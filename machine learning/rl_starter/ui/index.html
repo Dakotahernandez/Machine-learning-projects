@@ -32,6 +32,11 @@
 
         <div id="train-fields">
           <div class="row">
+            <label for="run_name">Model Name</label>
+            <input id="run_name" type="text" value="lunarlander_ppo" />
+          </div>
+
+          <div class="row">
             <label for="timesteps">Timesteps</label>
             <input id="timesteps" type="number" value="500000" min="1000" step="1000" />
           </div>
@@ -67,6 +72,11 @@
         </div>
 
         <div id="eval-fields" class="hidden">
+          <div class="row">
+            <label for="model_path">Model</label>
+            <select id="model_path"></select>
+          </div>
+
           <div class="row">
             <label for="episodes">Episodes</label>
             <input id="episodes" type="number" value="3" min="1" step="1" />

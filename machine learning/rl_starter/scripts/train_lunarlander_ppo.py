@@ -65,8 +65,10 @@ def main() -> None:
     parser.add_argument("--vec-env", choices=["subproc", "dummy"], default="subproc")
     parser.add_argument("--vec-normalize", action="store_true")
     parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
-    parser.add_argument("--save-path", type=str, default="models/lunarlander_ppo.zip")
-    parser.add_argument("--log-dir", type=str, default="runs/lunarlander_ppo")
+    parser.add_argument("--run-name", type=str, default="lunarlander_ppo")
+    parser.add_argument("--save-path", type=str, default=None)
+    parser.add_argument("--log-dir", type=str, default=None)
+    parser.add_argument("--verbose", type=int, default=0)
     parser.add_argument("--checkpoint-freq", type=int, default=50_000)
     parser.add_argument("--eval-freq", type=int, default=25_000)
     args = parser.parse_args()
@@ -80,7 +82,9 @@ def main() -> None:
     eval_env = DummyVecEnv([lambda: gym.make("LunarLander-v2")])
     eval_env = VecMonitor(eval_env)
 
-    vecnorm_path = Path(args.save_path).with_suffix("").with_name("lunarlander_ppo_vecnormalize.pkl")
+    save_path = Path(args.save_path) if args.save_path else dirs["models"] / f"{args.run_name}.zip"
+    log_dir = Path(args.log_dir) if args.log_dir else dirs["runs"] / args.run_name
+    vecnorm_path = save_path.with_suffix("").with_name(f"{save_path.stem}_vecnormalize.pkl")
     if args.vec_normalize:
         env = VecNormalize(env, norm_obs=True, norm_reward=False, clip_obs=10.0)
         eval_env = VecNormalize(eval_env, training=False, norm_reward=False)
@@ -94,21 +98,20 @@ def main() -> None:
 
     callbacks = [
         make_checkpoint_callback(args.checkpoint_freq, checkpoint_dir, "lunarlander_ppo"),
-        make_eval_callback(eval_env, dirs["models"], Path(args.log_dir) / "eval", args.eval_freq),
+        make_eval_callback(eval_env, dirs["models"], log_dir / "eval", args.eval_freq),
     ]
 
     model = PPO(
         "MlpPolicy",
         env,
-        verbose=1,
-        tensorboard_log=args.log_dir,
+        verbose=args.verbose,
+        tensorboard_log=str(log_dir),
         device=device,
         seed=args.seed,
     )
 
     model.learn(total_timesteps=args.timesteps, callback=callbacks)
 
-    save_path = Path(args.save_path)
     save_path.parent.mkdir(parents=True, exist_ok=True)
     model.save(str(save_path))
 

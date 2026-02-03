@@ -72,8 +72,10 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--n-envs", type=int, default=1)
     parser.add_argument("--device", choices=["auto", "cpu", "cuda"], default="auto")
-    parser.add_argument("--save-path", type=str, default="models/pong_dqn.zip")
-    parser.add_argument("--log-dir", type=str, default="runs/pong_dqn")
+    parser.add_argument("--run-name", type=str, default="pong_dqn")
+    parser.add_argument("--save-path", type=str, default=None)
+    parser.add_argument("--log-dir", type=str, default=None)
+    parser.add_argument("--verbose", type=int, default=0)
     parser.add_argument("--checkpoint-freq", type=int, default=100_000)
     parser.add_argument("--eval-freq", type=int, default=50_000)
     args = parser.parse_args()
@@ -86,19 +88,22 @@ def main() -> None:
 
     device = pick_device(args.device)
 
+    save_path = Path(args.save_path) if args.save_path else dirs["models"] / f"{args.run_name}.zip"
+    log_dir = Path(args.log_dir) if args.log_dir else dirs["runs"] / args.run_name
+
     checkpoint_dir = dirs["models"] / "pong_dqn_checkpoints"
     checkpoint_dir.mkdir(parents=True, exist_ok=True)
 
     callbacks = [
         make_checkpoint_callback(args.checkpoint_freq, checkpoint_dir, "pong_dqn"),
-        make_eval_callback(eval_env, dirs["models"], Path(args.log_dir) / "eval", args.eval_freq),
+        make_eval_callback(eval_env, dirs["models"], log_dir / "eval", args.eval_freq),
     ]
 
     model = DQN(
         "CnnPolicy",
         env,
-        verbose=1,
-        tensorboard_log=args.log_dir,
+        verbose=args.verbose,
+        tensorboard_log=str(log_dir),
         device=device,
         seed=args.seed,
         learning_rate=1e-4,
@@ -114,7 +119,6 @@ def main() -> None:
 
     model.learn(total_timesteps=args.timesteps, callback=callbacks)
 
-    save_path = Path(args.save_path)
     save_path.parent.mkdir(parents=True, exist_ok=True)
     model.save(str(save_path))
 
