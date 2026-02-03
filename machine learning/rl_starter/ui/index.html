@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RL Starter Control</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <h1>RL Starter Control</h1>
+        <p>Train and evaluate LunarLander PPO or Pong DQN from your browser.</p>
+      </header>
+
+      <section class="card">
+        <div class="row">
+          <label for="task">Task</label>
+          <select id="task">
+            <option value="train">Train</option>
+            <option value="eval">Evaluate</option>
+          </select>
+        </div>
+
+        <div class="row">
+          <label for="game">Game</label>
+          <select id="game">
+            <option value="lunarlander">LunarLander (PPO)</option>
+            <option value="pong">Pong (DQN)</option>
+          </select>
+        </div>
+
+        <div id="train-fields">
+          <div class="row">
+            <label for="timesteps">Timesteps</label>
+            <input id="timesteps" type="number" value="500000" min="1000" step="1000" />
+          </div>
+
+          <div class="row">
+            <label for="n_envs">Envs</label>
+            <input id="n_envs" type="number" value="16" min="1" step="1" />
+          </div>
+
+          <div class="row">
+            <label for="device">Device</label>
+            <select id="device">
+              <option value="auto">auto</option>
+              <option value="cuda">cuda</option>
+              <option value="cpu">cpu</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label for="vec_env">Vec Env (LunarLander)</label>
+            <select id="vec_env">
+              <option value="subproc">subproc</option>
+              <option value="dummy">dummy</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <label>
+              <input id="vec_normalize" type="checkbox" />
+              VecNormalize (LunarLander)
+            </label>
+          </div>
+        </div>
+
+        <div id="eval-fields" class="hidden">
+          <div class="row">
+            <label for="episodes">Episodes</label>
+            <input id="episodes" type="number" value="3" min="1" step="1" />
+          </div>
+
+          <div class="row">
+            <label for="eval_device">Device</label>
+            <select id="eval_device">
+              <option value="auto">auto</option>
+              <option value="cuda">cuda</option>
+              <option value="cpu">cpu</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row actions">
+          <button id="run" class="primary">Run</button>
+          <button id="stop">Stop</button>
+        </div>
+
+        <div class="row status">
+          <div>State: <span id="state">idle</span></div>
+          <div>Command: <span id="cmd">-</span></div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Logs</h2>
+        <pre id="logs"></pre>
+      </section>
+
+      <section class="card note">
+        <h3>Notes</h3>
+        <ul>
+          <li>Pong requires Atari extras and ROMs. Install with: gymnasium[atari]==0.29.1 and autorom.</li>
+          <li>Eval renders the game; rendering is slower and CPU-bound.</li>
+        </ul>
+      </section>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

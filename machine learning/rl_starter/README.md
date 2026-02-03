@@ -11,6 +11,16 @@ PowerShell (from project root):
 .\scripts\install_windows.ps1
 ```
 
+## Web UI (optional)
+
+Start the local web UI:
+
+```powershell
+.\.venv\Scripts\python.exe .\scripts\ui_server.py
+```
+
+Then open `http://127.0.0.1:8000` in your browser.
+
 ```powershell
 # 2) Train LunarLander PPO (uses LunarLander-v2)
 .\.venv\Scripts\python.exe .\scripts\train_lunarlander_ppo.py --timesteps 500000 --n-envs 16
