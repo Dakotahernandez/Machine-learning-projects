@@ -7,6 +7,10 @@ const stateEl = document.getElementById("state");
 const cmdEl = document.getElementById("cmd");
 const modelSelect = document.getElementById("model_path");
 const runNameEl = document.getElementById("run_name");
+const nEnvsEl = document.getElementById("n_envs");
+const doneBanner = document.getElementById("done-banner");
+const vecEnvRow = document.getElementById("row-vec-env");
+const vecNormRow = document.getElementById("row-vec-norm");
 
 const runBtn = document.getElementById("run");
 const stopBtn = document.getElementById("stop");
@@ -23,10 +27,19 @@ gameEl.addEventListener("change", () => {
   if (!runNameEl.value || runNameEl.value === "pong_dqn" || runNameEl.value === "lunarlander_ppo") {
     runNameEl.value = defaultName;
   }
+  if (gameEl.value === "pong") {
+    nEnvsEl.value = "1";
+  }
+  const isLunar = gameEl.value === "lunarlander";
+  vecEnvRow.classList.toggle("hidden", !isLunar);
+  vecNormRow.classList.toggle("hidden", !isLunar);
   refreshModels();
 });
 
 toggleFields();
+const initialIsLunar = gameEl.value === "lunarlander";
+vecEnvRow.classList.toggle("hidden", !initialIsLunar);
+vecNormRow.classList.toggle("hidden", !initialIsLunar);
 
 async function postJson(url, payload) {
   const res = await fetch(url, {
@@ -42,6 +55,29 @@ async function refreshStatus() {
   const data = await res.json();
   stateEl.textContent = data.state;
   cmdEl.textContent = data.command || "-";
+
+  stateEl.className = "";
+  doneBanner.classList.add("hidden");
+  doneBanner.classList.remove("ok", "err");
+
+  if (data.state === "running") {
+    stateEl.classList.add("running");
+  } else if (data.state === "idle") {
+    stateEl.classList.add("idle");
+  } else if (data.state.startsWith("exit(")) {
+    const code = data.state.slice(5, -1);
+    if (code === "0") {
+      stateEl.classList.add("exit-ok");
+      doneBanner.textContent = "Done: run completed successfully.";
+      doneBanner.classList.add("ok");
+      doneBanner.classList.remove("hidden");
+    } else {
+      stateEl.classList.add("exit-error");
+      doneBanner.textContent = `Done with errors (exit ${code}). See logs for details.`;
+      doneBanner.classList.add("err");
+      doneBanner.classList.remove("hidden");
+    }
+  }
 }
 
 async function refreshLogs() {
@@ -77,6 +113,7 @@ runBtn.addEventListener("click", async () => {
     timesteps: Number(document.getElementById("timesteps").value || 0),
     n_envs: Number(document.getElementById("n_envs").value || 1),
     device: document.getElementById("device").value,
+    verbose: Number(document.getElementById("verbose").value || 0),
     vec_env: document.getElementById("vec_env").value,
     vec_normalize: document.getElementById("vec_normalize").checked,
     episodes: Number(document.getElementById("episodes").value || 1),

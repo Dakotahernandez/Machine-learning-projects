@@ -90,6 +90,57 @@ button:hover {
   font-size: 14px;
 }
 
+#state {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1b2426;
+  border: 1px solid var(--border);
+}
+
+#state.running {
+  background: rgba(43, 176, 167, 0.18);
+  color: #b8f0ea;
+  border-color: rgba(43, 176, 167, 0.45);
+}
+
+#state.idle {
+  background: rgba(153, 167, 171, 0.12);
+  color: var(--muted);
+}
+
+#state.exit-ok {
+  background: rgba(72, 199, 142, 0.18);
+  color: #b9f4d5;
+  border-color: rgba(72, 199, 142, 0.45);
+}
+
+#state.exit-error {
+  background: rgba(242, 82, 82, 0.2);
+  color: #ffd0d0;
+  border-color: rgba(242, 82, 82, 0.5);
+}
+
+.banner {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0f1718;
+  font-size: 14px;
+}
+
+.banner.ok {
+  border-color: rgba(72, 199, 142, 0.5);
+  background: rgba(72, 199, 142, 0.12);
+  color: #d7ffe9;
+}
+
+.banner.err {
+  border-color: rgba(242, 82, 82, 0.5);
+  background: rgba(242, 82, 82, 0.12);
+  color: #ffd0d0;
+}
+
 pre {
   background: #0b1112;
   border: 1px solid var(--border);

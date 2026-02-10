@@ -56,6 +56,15 @@
           </div>
 
           <div class="row">
+            <label for="verbose">Verbose Logs</label>
+            <select id="verbose">
+              <option value="0">0 (quiet)</option>
+              <option value="1">1 (default)</option>
+              <option value="2">2 (noisy)</option>
+            </select>
+          </div>
+
+          <div class="row" id="row-vec-env">
             <label for="vec_env">Vec Env (LunarLander)</label>
             <select id="vec_env">
               <option value="subproc">subproc</option>
@@ -63,7 +72,7 @@
             </select>
           </div>
 
-          <div class="row">
+          <div class="row" id="row-vec-norm">
             <label>
               <input id="vec_normalize" type="checkbox" />
               VecNormalize (LunarLander)
@@ -101,6 +110,7 @@
           <div>State: <span id="state">idle</span></div>
           <div>Command: <span id="cmd">-</span></div>
         </div>
+        <div id="done-banner" class="banner hidden"></div>
       </section>
 
       <section class="card">

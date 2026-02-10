@@ -25,20 +25,21 @@ class ProcessManager:
             if self.proc and self.proc.poll() is None:
                 return False
             self.command = command
-            self.lines = []
+            self.lines = [f"CMD: {' '.join(command)}"]
             self.proc = Popen(command, stdout=PIPE, stderr=PIPE, text=True, cwd=str(ROOT))
-            threading.Thread(target=self._drain, args=(self.proc.stdout,), daemon=True).start()
-            threading.Thread(target=self._drain, args=(self.proc.stderr,), daemon=True).start()
+            threading.Thread(target=self._drain, args=(self.proc.stdout, "stdout"), daemon=True).start()
+            threading.Thread(target=self._drain, args=(self.proc.stderr, "stderr"), daemon=True).start()
             return True
 
-    def _drain(self, stream):
+    def _drain(self, stream, label: str):
         if stream is None:
             return
         for line in stream:
             with self.lock:
-                self.lines.append(line.rstrip())
-                if len(self.lines) > 500:
-                    self.lines = self.lines[-500:]
+                prefix = "[stderr] " if label == "stderr" else ""
+                self.lines.append(prefix + line.rstrip())
+                if len(self.lines) > 2000:
+                    self.lines = self.lines[-2000:]
 
     def stop(self) -> None:
         with self.lock:
@@ -99,7 +100,7 @@ def build_command(payload: dict[str, Any]) -> list[str]:
             "--log-dir",
             log_dir,
             "--verbose",
-            "0",
+            str(int(payload.get("verbose", 0))),
         ]
         if payload.get("vec_normalize"):
             cmd.append("--vec-normalize")
@@ -134,7 +135,7 @@ def build_command(payload: dict[str, Any]) -> list[str]:
             "--log-dir",
             log_dir,
             "--verbose",
-            "0",
+            str(int(payload.get("verbose", 0))),
         ]
 
     if task == "eval" and game == "pong":
