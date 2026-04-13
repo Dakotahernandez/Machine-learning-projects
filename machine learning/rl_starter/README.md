@@ -1,6 +1,6 @@
 # Machine Learning Projects
 
-A comprehensive collection of machine learning projects spanning classical ML, deep learning, NLP, computer vision, generative models, time series forecasting, and reinforcement learning — all built from scratch with **PyTorch** and **scikit-learn**.
+A comprehensive collection of machine learning projects spanning classical ML, deep learning, NLP, computer vision, generative models, time series forecasting, reinforcement learning, and **LLM experimentation with Google Gemma** — all built from scratch with **PyTorch** and **scikit-learn**.
 
 ---
 
@@ -15,6 +15,7 @@ A comprehensive collection of machine learning projects spanning classical ML, d
 | 5 | [**Generative Models**](generative/) | Generative AI | DCGAN image generation, VAE with latent interpolation, t-SNE visualisation |
 | 6 | [**Time Series**](time_series/) | Forecasting | LSTM forecaster, Transformer forecaster, ARIMA, Holt-Winters, decomposition |
 | 7 | [**Reinforcement Learning**](reinforcement_learning/) | RL | PPO LunarLander, DQN Atari Pong, web UI dashboard, TensorBoard logging |
+| 8 | [**Gemma LLM**](gemma/) | Large Language Models | Text generation, chat, LoRA fine-tuning, RAG pipeline, embeddings, benchmarking |
 
 ---
 
@@ -24,6 +25,7 @@ A comprehensive collection of machine learning projects spanning classical ML, d
 |----------|-------------|
 | **Deep Learning** | PyTorch, torchvision, CUDA/AMP |
 | **Classical ML** | scikit-learn, XGBoost, statsmodels |
+| **LLMs** | HuggingFace Transformers, PEFT/LoRA, bitsandbytes, FAISS |
 | **Visualisation** | Matplotlib, Seaborn, TensorBoard, UMAP, t-SNE |
 | **RL** | Stable-Baselines3, Gymnasium |
 | **Data** | pandas, NumPy |
@@ -70,6 +72,17 @@ A comprehensive collection of machine learning projects spanning classical ML, d
 │   ├── scripts/                  #   Train/eval scripts + web UI server
 │   ├── rl_utils/                 #   Callbacks, seeding, path helpers
 │   ├── ui/                       #   Browser-based control panel
+│   └── requirements.txt
+│
+├── gemma/                        # Google Gemma LLM experiments
+│   ├── text_generation.py        #   6 decoding strategies, quantisation
+│   ├── chat.py                   #   Multi-turn interactive chat
+│   ├── finetune_lora.py          #   LoRA fine-tuning with PEFT
+│   ├── rag_pipeline.py           #   Retrieval-augmented generation + FAISS
+│   ├── summarizer.py             #   Chunked + hierarchical summarisation
+│   ├── structured_output.py      #   Schema-constrained JSON extraction
+│   ├── embeddings.py             #   Sentence embeddings, search, clustering
+│   ├── benchmark.py              #   FP16 vs INT8 vs INT4 speed/memory
 │   └── requirements.txt
 │
 └── .gitignore
@@ -144,6 +157,16 @@ cd reinforcement_learning
 .\.venv\Scripts\python.exe .\scripts\train_lunarlander_ppo.py --timesteps 500000 --n-envs 16
 .\.venv\Scripts\python.exe .\scripts\ui_server.py  # web UI at localhost:8000
 ```
+
+### Gemma — Chat, Fine-tune, and RAG with Google's Open LLM
+```powershell
+pip install -r gemma/requirements.txt
+python gemma/chat.py --quant int4                       # interactive chat
+python gemma/finetune_lora.py --epochs 3                # LoRA fine-tune
+python gemma/rag_pipeline.py --query "How do transformers work?"
+python gemma/benchmark.py --quants fp16 int8 int4       # speed comparison
+```
+Text generation with 6 strategies, RAG with FAISS, structured JSON extraction, sentence embeddings with clustering, and full FP16/INT8/INT4 benchmarking.
 
 ---
 
