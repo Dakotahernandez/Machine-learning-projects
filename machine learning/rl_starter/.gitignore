@@ -1,5 +1,63 @@
-.venv/
+# Python
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+dist/
+build/
+*.whl
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_metadata
+
+# ML artifacts - trained model weights
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.h5
+*.hdf5
+*.onnx
+*.zip
+*.safetensors
+
+# Data files (download via scripts)
+*.csv
+*.tsv
+*.parquet
+data/
+datasets/
+
+# Logs & experiment tracking
 runs/
+logs/
+wandb/
+mlruns/
+lightning_logs/
+
+# Models directory
 models/
+checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Misc
+*.log
+.env

@@ -1,76 +1,27 @@
-# RL Starter (Gymnasium + SB3 + PyTorch CUDA)
+# Machine Learning Projects
 
-Local Windows 11 starter for training game-playing agents with Gymnasium + Stable-Baselines3 + PyTorch (CUDA).
+A comprehensive collection of machine learning projects spanning classical ML, deep learning, NLP, computer vision, generative models, time series forecasting, and reinforcement learning — all built from scratch with PyTorch and scikit-learn.
 
-## Quickstart
+## Projects
 
-PowerShell (from project root):
+| # | Project | Domain | Stack | Description |
+|---|---------|--------|-------|-------------|
+| 1 | [Reinforcement Learning](reinforcement_learning/) | RL | PyTorch, SB3, Gymnasium | PPO LunarLander + DQN Atari Pong with web UI |
 
-```powershell
-# 1) Install dependencies (creates .venv and installs CUDA-enabled torch)
-.\scripts\install_windows.ps1
-```
+## Setup
 
-## Web UI (optional)
-
-Start the local web UI:
+Each project has its own `requirements.txt`. For a shared environment:
 
 ```powershell
-.\.venv\Scripts\python.exe .\scripts\ui_server.py
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121
 ```
 
-Then open `http://127.0.0.1:8000` in your browser.
+## Structure
 
-```powershell
-# 2) Train LunarLander PPO (uses LunarLander-v2)
-.\.venv\Scripts\python.exe .\scripts\train_lunarlander_ppo.py --timesteps 500000 --n-envs 16
 ```
-
-```powershell
-# 3) Evaluate LunarLander PPO (renders)
-.\.venv\Scripts\python.exe .\scripts\eval_lunarlander_ppo.py --episodes 5
+├── reinforcement_learning/   # Gymnasium + SB3 game agents with web UI
+├── .gitignore
+└── README.md
 ```
-
-## Atari (Pong) setup (optional)
-
-Install Atari extras (two commands):
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install "gymnasium[atari]==0.29.1" "autorom[accept-rom-license]"
-.\.venv\Scripts\python.exe -m autorom
-```
-
-Train Pong DQN:
-
-```powershell
-.\.venv\Scripts\python.exe .\scripts\train_pong_dqn.py --timesteps 1000000
-```
-
-Evaluate Pong DQN (renders):
-
-```powershell
-.\.venv\Scripts\python.exe .\scripts\eval_pong_dqn.py --episodes 3
-```
-
-## TensorBoard
-
-```powershell
-.\.venv\Scripts\tensorboard.exe --logdir .\runs
-```
-
-## Troubleshooting (Windows)
-
-- **PowerShell script execution policy**: If scripts are blocked, run PowerShell as your user and execute:
-  ```powershell
-  Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
-  ```
-- **Visual C++ build tools**: Some packages may require Microsoft Visual C++ Build Tools. Install from the Visual Studio Build Tools installer if you see compiler errors.
-- **Box2D build on Windows**: If Gymnasium Box2D fails to install, install SWIG and the C++ build tools, then retry.
-- **Rendering**: Gymnasium rendering needs a desktop session. If running headless or via remote session without GUI, use `--render-mode none` (where available) or avoid eval scripts.
-- **Slow or stuck rendering**: Try reducing episode count or disabling rendering. Rendering is only enabled in the eval scripts by default.
-- **GPU not used**: Ensure your NVIDIA drivers are up to date and that `torch.cuda.is_available()` returns `True`. If your GPU is newer than the PyTorch build (e.g., sm_120), use `--device cpu` or install a newer PyTorch build that supports your GPU.
-
-## Notes
-
-- LunarLander uses vectorized environments and optional `VecNormalize` (Gymnasium `LunarLander-v2`).
-- Atari is optional and separated from LunarLander. If Atari dependencies are missing, the Pong scripts will exit with a clear message.
